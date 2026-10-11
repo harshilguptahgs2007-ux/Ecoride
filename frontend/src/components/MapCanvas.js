@@ -77,16 +77,31 @@ export const MapCanvas = ({ onSearchPress, onSelectBus }) => {
 
       {/* Floating Transit Search Bar */}
       <View style={styles.searchPill}>
-        <Search size={18} color={THEME.colors.primary} />
+        <TouchableOpacity
+          onPress={() => onSearchPress && onSearchPress(searchQuery || "Noida Sector 18")}
+          activeOpacity={0.7}
+        >
+          <Search size={18} color={THEME.colors.primary} />
+        </TouchableOpacity>
         <TextInput
           style={styles.searchInput}
           placeholder="Where to? (e.g. Noida Sec 18, CP)"
           placeholderTextColor={THEME.colors.textMuted}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          onFocus={() => {
+            if (onSearchPress) {
+              onSearchPress(searchQuery);
+            }
+          }}
           onSubmitEditing={() => onSearchPress && onSearchPress(searchQuery)}
+          returnKeyType="search"
+          editable={true}
         />
-        <TouchableOpacity style={styles.micButton}>
+        <TouchableOpacity
+          style={styles.micButton}
+          onPress={() => onSearchPress && onSearchPress("Connaught Place, Delhi")}
+        >
           <Mic size={18} color={THEME.colors.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity

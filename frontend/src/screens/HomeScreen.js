@@ -113,15 +113,22 @@ export const HomeScreen = ({ navigation }) => {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
         <SavedPlacesScroller
           onSelectPlace={(place) => {
+            setBookedDriver(null);
             setDropAddress(place.subtitle);
             setBookingModalVisible(true);
           }}
-          onAddPlace={() => setBookingModalVisible(true)}
+          onAddPlace={() => {
+            setBookedDriver(null);
+            setBookingModalVisible(true);
+          }}
         />
 
         <MapCanvas
           onSearchPress={(query) => {
-            setDropAddress(query);
+            setBookedDriver(null);
+            if (query) {
+              setDropAddress(query);
+            }
             setBookingModalVisible(true);
           }}
           onSelectBus={(bus) => {
@@ -313,7 +320,10 @@ export const HomeScreen = ({ navigation }) => {
                     style={styles.textInput}
                     value={pickupAddress}
                     onChangeText={setPickupAddress}
-                    placeholder="Enter pickup location"
+                    placeholder="Enter pickup location (e.g. Sec 62, Noida)"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    editable={true}
+                    returnKeyType="next"
                   />
                 </View>
 
@@ -323,7 +333,11 @@ export const HomeScreen = ({ navigation }) => {
                     style={styles.textInput}
                     value={dropAddress}
                     onChangeText={setDropAddress}
-                    placeholder="Enter destination"
+                    placeholder="Enter destination (e.g. Cyber City, Gurugram)"
+                    placeholderTextColor={THEME.colors.textMuted}
+                    editable={true}
+                    returnKeyType="done"
+                    autoFocus={true}
                   />
                 </View>
 
