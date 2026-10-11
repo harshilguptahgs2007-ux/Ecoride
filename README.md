@@ -1,4 +1,4 @@
-# EcoRide / Zap_bus
+# EcoRide
 
 A full-stack sustainable transit and EV bus booking application featuring real-time Redis in-memory visibility, SQLite persistence, and a modern mobile-responsive frontend built with React Native and Expo.
 
