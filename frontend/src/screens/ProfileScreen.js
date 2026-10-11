@@ -18,6 +18,7 @@ import {
   Phone,
   MapPin,
   ChevronRight,
+  ChevronDown,
   PiggyBank,
   Bus,
   Home,
@@ -25,11 +26,17 @@ import {
   Bell,
   Headphones,
   LogOut,
+  Target,
+  Sparkles,
+  Award,
+  ShieldCheck,
+  ArrowRight,
 } from "lucide-react-native";
 
 export const ProfileScreen = () => {
   const { user } = useAuth();
   const [autoRedeem, setAutoRedeem] = useState(true);
+  const [showPerks, setShowPerks] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -96,11 +103,89 @@ export const ProfileScreen = () => {
                 Transit Tier: <Text style={styles.ribbonTierBold}>Forest Sentinel</Text>
               </Text>
             </View>
-            <TouchableOpacity style={styles.perksBtn} activeOpacity={0.7}>
-              <Text style={styles.perksText}>View Perks</Text>
-              <ChevronRight size={13} color={THEME.colors.secondary} />
+            <TouchableOpacity
+              style={styles.perksBtn}
+              onPress={() => setShowPerks((prev) => !prev)}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.perksText}>
+                {showPerks ? "Hide Perks" : "View Perks"}
+              </Text>
+              {showPerks ? (
+                <ChevronDown size={14} color={THEME.colors.secondary} />
+              ) : (
+                <ChevronRight size={14} color={THEME.colors.secondary} />
+              )}
             </TouchableOpacity>
           </View>
+
+          {/* Interactive Perks & Target Tier Roadmap with Arrow Indicators */}
+          {showPerks && (
+            <View style={styles.perksTargetPanel}>
+              {/* Header info with Target icon */}
+              <View style={styles.perksPanelHeader}>
+                <View style={styles.targetIconCircle}>
+                  <Target size={16} color={THEME.colors.primary} />
+                </View>
+                <View style={styles.targetHeaderTexts}>
+                  <Text style={styles.targetPanelTitle}>Current Tier Perks & Next Targets</Text>
+                  <Text style={styles.targetPanelSubtitle}>
+                    Earn 80 more pts to unlock Tier 4 Eco-Ambassador
+                  </Text>
+                </View>
+              </View>
+
+              {/* Target Milestones Road with Directional Arrow */}
+              <View style={styles.milestonesRoad}>
+                {/* Step 1: Active Tier */}
+                <View style={styles.milestoneItem}>
+                  <View style={styles.milestoneBadgeActive}>
+                    <ShieldCheck size={14} color="#ffffff" />
+                    <Text style={styles.milestoneBadgeTextActive}>Forest Sentinel (Active)</Text>
+                  </View>
+                  <Text style={styles.milestonePerkDesc}>
+                    ✓ 1.25x EcoPoints multiplier on all EV rides
+                  </Text>
+                  <Text style={styles.milestonePerkDesc}>
+                    ✓ Priority boarding access on electric corridors
+                  </Text>
+                </View>
+
+                {/* Directional Target Arrow Connector */}
+                <View style={styles.targetArrowConnector}>
+                  <View style={styles.targetArrowLine} />
+                  <View style={styles.targetArrowBadge}>
+                    <Text style={styles.targetArrowLabel}>NEXT TARGET</Text>
+                    <ArrowRight size={14} color={THEME.colors.primary} />
+                  </View>
+                  <View style={styles.targetArrowLine} />
+                </View>
+
+                {/* Step 2: Next Target Tier */}
+                <View style={styles.milestoneItemTarget}>
+                  <View style={styles.milestoneBadgeTarget}>
+                    <Award size={14} color={THEME.colors.tertiaryDark} />
+                    <Text style={styles.milestoneBadgeTextTarget}>Target: Eco-Ambassador (500 pts)</Text>
+                  </View>
+                  <Text style={styles.targetPerkDesc}>
+                    → 1.5x EcoPoints multiplier + 2 free monthly ride passes
+                  </Text>
+                  <Text style={styles.targetPerkDesc}>
+                    → Exclusive invitations to zero-carbon tree-plantation drives
+                  </Text>
+
+                  {/* Progress Bar towards target */}
+                  <View style={styles.targetProgressBarTrack}>
+                    <View style={[styles.targetProgressBarFill, { width: "84%" }]} />
+                  </View>
+                  <View style={styles.targetProgressFooter}>
+                    <Text style={styles.targetProgressText}>420 / 500 EcoPoints (84%)</Text>
+                    <Text style={styles.targetPtsRemaining}>80 pts needed 🎯</Text>
+                  </View>
+                </View>
+              </View>
+            </View>
+          )}
         </View>
 
         {/* Commuter Stats Bento Summary (3-Column Grid) */}
@@ -430,6 +515,157 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
     color: THEME.colors.secondary,
+  },
+  perksTargetPanel: {
+    marginTop: 12,
+    backgroundColor: THEME.colors.surface,
+    borderRadius: THEME.roundness.lg,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    gap: 12,
+    ...THEME.shadows.card,
+  },
+  perksPanelHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  targetIconCircle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "rgba(0, 107, 44, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  targetHeaderTexts: {
+    flex: 1,
+  },
+  targetPanelTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  targetPanelSubtitle: {
+    fontSize: 10,
+    color: THEME.colors.textSecondary,
+    marginTop: 1,
+  },
+  milestonesRoad: {
+    gap: 10,
+  },
+  milestoneItem: {
+    backgroundColor: THEME.colors.surfaceSecondary,
+    borderRadius: THEME.roundness.md,
+    padding: 10,
+    gap: 5,
+  },
+  milestoneBadgeActive: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 5,
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.roundness.full,
+    marginBottom: 2,
+  },
+  milestoneBadgeTextActive: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  milestonePerkDesc: {
+    fontSize: 11,
+    color: THEME.colors.textPrimary,
+    lineHeight: 16,
+  },
+  targetArrowConnector: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    marginVertical: 2,
+  },
+  targetArrowLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: THEME.colors.surfaceBorder,
+  },
+  targetArrowBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0, 107, 44, 0.12)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: THEME.roundness.full,
+    borderWidth: 1,
+    borderColor: "rgba(0, 107, 44, 0.2)",
+  },
+  targetArrowLabel: {
+    fontSize: 9,
+    fontWeight: "800",
+    color: THEME.colors.primary,
+    letterSpacing: 0.5,
+  },
+  milestoneItemTarget: {
+    backgroundColor: "rgba(117, 88, 0, 0.06)",
+    borderRadius: THEME.roundness.md,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "rgba(117, 88, 0, 0.2)",
+    gap: 6,
+  },
+  milestoneBadgeTarget: {
+    flexDirection: "row",
+    alignItems: "center",
+    alignSelf: "flex-start",
+    gap: 5,
+    backgroundColor: "rgba(117, 88, 0, 0.15)",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: THEME.roundness.full,
+  },
+  milestoneBadgeTextTarget: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: THEME.colors.tertiaryDark,
+  },
+  targetPerkDesc: {
+    fontSize: 11,
+    color: THEME.colors.textPrimary,
+    lineHeight: 16,
+  },
+  targetProgressBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "rgba(0, 0, 0, 0.08)",
+    overflow: "hidden",
+    marginTop: 4,
+  },
+  targetProgressBarFill: {
+    height: "100%",
+    borderRadius: 3,
+    backgroundColor: THEME.colors.tertiaryDark,
+  },
+  targetProgressFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 2,
+  },
+  targetProgressText: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: THEME.colors.textSecondary,
+  },
+  targetPtsRemaining: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: THEME.colors.tertiaryDark,
   },
   bentoGrid: {
     flexDirection: "row",
