@@ -24,6 +24,14 @@ import {
   Lock,
   X,
   Bus,
+  Tag,
+  Sparkles,
+  ShoppingBag,
+  Copy,
+  ArrowUpRight,
+  Award,
+  ShieldCheck,
+  Clock,
 } from "lucide-react-native";
 
 const MARKETPLACE_ITEMS = [
@@ -100,8 +108,33 @@ export const MarketplaceScreen = () => {
   const [chartMode, setChartMode] = useState("bar"); // 'bar', 'line'
   const [selectedReward, setSelectedReward] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [redemptions, setRedemptions] = useState([
+    {
+      id: "claim_sample_1",
+      name: "₹100 Bus Ride Discount Coupon",
+      category: "Instant Pass",
+      points: 50,
+      claimedAt: "Today, 11:30 AM",
+      code: "ECO-RIDE-9924",
+      status: "Active",
+      isCouponCard: true,
+    },
+    {
+      id: "claim_sample_2",
+      name: "Stainless Steel Reusable Bottle",
+      category: "Eco Essential",
+      points: 250,
+      claimedAt: "Yesterday, 4:15 PM",
+      code: "ECO-GEAR-7182",
+      status: "Dispatched",
+      imageUrl:
+        "https://lh3.googleusercontent.com/aida-public/AB6AXuCpPTvsZhcs9vX6i6Nz1nbRrtLWBhTyVAHpVNGsPSyCPXkazdNl5HXNv08ppoT8x6qJ8WKvBjEsw7w2H4pvEBTLkSr5Ez_JugED1eQiebB7DJtP6CJrE-CDkVU1MjkmHBc5iPom3vCjmkdZJvLnRhDDFc5N9idExahQedth3YofKjyWfeLep0sJZzvzZkdzSIe5pXXk4P-QNSXJr28v-4vX7JjojtIsXNFk900nXauaowKiXY9-Q3g6MQ",
+    },
+  ]);
+  const [spentPoints, setSpentPoints] = useState(300);
 
-  const currentPoints = user?.eco_points_total || 420;
+  const initialBalance = user?.eco_points_total || 420;
+  const currentPoints = Math.max(0, initialBalance - (spentPoints - 300));
 
   const handleOpenRedeem = (item) => {
     setSelectedReward(item);
@@ -110,10 +143,24 @@ export const MarketplaceScreen = () => {
 
   const handleConfirmClaim = () => {
     if (!selectedReward) return;
+    const newClaim = {
+      id: `claim_${Date.now()}`,
+      name: selectedReward.name,
+      category: selectedReward.category,
+      points: selectedReward.points,
+      claimedAt: "Just now",
+      code: `ECO-${Math.floor(1000 + Math.random() * 9000)}-ZAP`,
+      status: selectedReward.isCouponCard ? "Active" : "Processing",
+      imageUrl: selectedReward.imageUrl,
+      isCouponCard: selectedReward.isCouponCard,
+    };
+    setRedemptions([newClaim, ...redemptions]);
+    setSpentPoints((prev) => prev + selectedReward.points);
     setModalVisible(false);
+    setActiveTab("redemptions");
     Alert.alert(
       "🎉 Reward Redeemed!",
-      `Successfully claimed "${selectedReward.name}". Voucher code sent to your verified email.`
+      `Successfully claimed "${selectedReward.name}". Voucher code ${newClaim.code} added to My Redemptions!`
     );
   };
 
@@ -235,240 +282,409 @@ export const MarketplaceScreen = () => {
           </View>
         </View>
 
-        {/* Points Analytics & Trends Section */}
-        <View style={styles.analyticsSection}>
-          <View style={styles.analyticsHeaderRow}>
-            <View style={styles.analyticsHeaderLeft}>
-              <TrendingUp size={18} color={THEME.colors.primary} />
-              <Text style={styles.analyticsTitle}>Points Analytics & Trends</Text>
-            </View>
-            <View style={styles.todayBadge}>
-              <Text style={styles.todayBadgeText}>Updated Today</Text>
-            </View>
-          </View>
-
-          {/* Activity Chart Container */}
-          <View style={styles.chartCard}>
-            <View style={styles.chartToggleHeader}>
-              <Text style={styles.chartCardTitle}>EcoPoints Activity</Text>
-              <View style={styles.chartToggleGroup}>
-                <TouchableOpacity
-                  style={[
-                    styles.chartToggleBtn,
-                    chartMode === "bar" && styles.chartToggleBtnActive,
-                  ]}
-                  onPress={() => setChartMode("bar")}
-                >
-                  <BarChart2
-                    size={12}
-                    color={chartMode === "bar" ? "#ffffff" : THEME.colors.textSecondary}
-                  />
-                  <Text
-                    style={[
-                      styles.chartToggleText,
-                      chartMode === "bar" && styles.chartToggleTextActive,
-                    ]}
-                  >
-                    Bar
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    styles.chartToggleBtn,
-                    chartMode === "line" && styles.chartToggleBtnActive,
-                  ]}
-                  onPress={() => setChartMode("line")}
-                >
-                  <LineChart
-                    size={12}
-                    color={chartMode === "line" ? "#ffffff" : THEME.colors.textSecondary}
-                  />
-                  <Text
-                    style={[
-                      styles.chartToggleText,
-                      chartMode === "line" && styles.chartToggleTextActive,
-                    ]}
-                  >
-                    Line
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {chartMode === "bar" ? (
-              <View style={styles.barChartView}>
-                <View style={styles.chartStatsRow}>
-                  <Text style={styles.chartSubLabel}>This Week's Earned Points</Text>
-                  <Text style={styles.chartValueLabel}>+145 pts</Text>
+        {/* TAB 1: REWARDS (Default Marketplace) */}
+        {activeTab === "rewards" && (
+          <>
+            {/* Points Analytics & Trends Section */}
+            <View style={styles.analyticsSection}>
+              <View style={styles.analyticsHeaderRow}>
+                <View style={styles.analyticsHeaderLeft}>
+                  <TrendingUp size={18} color={THEME.colors.primary} />
+                  <Text style={styles.analyticsTitle}>Points Analytics & Trends</Text>
                 </View>
-                <View style={styles.barsContainer}>
-                  {[
-                    { day: "Mon", val: 15, h: 30, active: false },
-                    { day: "Tue", val: 25, h: 48, active: false },
-                    { day: "Wed", val: 10, h: 20, active: false },
-                    { day: "Thu", val: 35, h: 65, active: false },
-                    { day: "Fri", val: 20, h: 40, active: false },
-                    { day: "Sat", val: 40, h: 80, active: true },
-                    { day: "Sun", val: "--", h: 8, active: false },
-                  ].map((bar, i) => (
-                    <View key={i} style={styles.barCol}>
-                      <Text
-                        style={[
-                          styles.barValText,
-                          bar.active && { color: THEME.colors.primary, fontWeight: "700" },
-                        ]}
-                      >
-                        {bar.val}
-                      </Text>
-                      <View
-                        style={[
-                          styles.barFill,
-                          {
-                            height: `${bar.h}%`,
-                            backgroundColor: bar.active
-                              ? THEME.colors.primary
-                              : THEME.colors.primaryLight,
-                          },
-                        ]}
+                <View style={styles.todayBadge}>
+                  <Text style={styles.todayBadgeText}>Updated Today</Text>
+                </View>
+              </View>
+
+              {/* Activity Chart Container */}
+              <View style={styles.chartCard}>
+                <View style={styles.chartToggleHeader}>
+                  <Text style={styles.chartCardTitle}>EcoPoints Activity</Text>
+                  <View style={styles.chartToggleGroup}>
+                    <TouchableOpacity
+                      style={[
+                        styles.chartToggleBtn,
+                        chartMode === "bar" && styles.chartToggleBtnActive,
+                      ]}
+                      onPress={() => setChartMode("bar")}
+                    >
+                      <BarChart2
+                        size={12}
+                        color={chartMode === "bar" ? "#ffffff" : THEME.colors.textSecondary}
                       />
                       <Text
                         style={[
-                          styles.barDayText,
-                          bar.active && { color: THEME.colors.textPrimary, fontWeight: "700" },
+                          styles.chartToggleText,
+                          chartMode === "bar" && styles.chartToggleTextActive,
                         ]}
                       >
-                        {bar.day}
+                        Bar
                       </Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ) : (
-              <View style={styles.lineChartView}>
-                <View style={styles.chartStatsRow}>
-                  <Text style={styles.chartSubLabel}>30-Day Cumulative Growth</Text>
-                  <Text style={[styles.chartValueLabel, { color: THEME.colors.secondary }]}>
-                    420 pts
-                  </Text>
-                </View>
-                <View style={styles.svgLineContainer}>
-                  <Svg width="100%" height="80" viewBox="0 0 300 80">
-                    <Defs>
-                      <SvgLinearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
-                        <Stop offset="0%" stopColor="#006a63" stopOpacity="0.3" />
-                        <Stop offset="100%" stopColor="#006a63" stopOpacity="0.0" />
-                      </SvgLinearGradient>
-                    </Defs>
-                    <Path
-                      d="M 0 65 Q 40 55, 80 50 T 160 38 T 230 22 T 300 8 L 300 80 L 0 80 Z"
-                      fill="url(#lineGrad)"
-                    />
-                    <Path
-                      d="M 0 65 Q 40 55, 80 50 T 160 38 T 230 22 T 300 8"
-                      fill="none"
-                      stroke="#006a63"
-                      strokeWidth="2.5"
-                      strokeLinecap="round"
-                    />
-                    <Circle cx="80" cy="50" r="3.5" fill="#006a63" />
-                    <Circle cx="160" cy="38" r="3.5" fill="#006a63" />
-                    <Circle cx="230" cy="22" r="3.5" fill="#006a63" />
-                    <Circle cx="300" cy="8" r="4" fill="#00873a" />
-                  </Svg>
-                  <View style={styles.lineXLabels}>
-                    <Text style={styles.xLabel}>Week 1</Text>
-                    <Text style={styles.xLabel}>Week 2</Text>
-                    <Text style={styles.xLabel}>Week 3</Text>
-                    <Text style={styles.xLabel}>Current</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.chartToggleBtn,
+                        chartMode === "line" && styles.chartToggleBtnActive,
+                      ]}
+                      onPress={() => setChartMode("line")}
+                    >
+                      <LineChart
+                        size={12}
+                        color={chartMode === "line" ? "#ffffff" : THEME.colors.textSecondary}
+                      />
+                      <Text
+                        style={[
+                          styles.chartToggleText,
+                          chartMode === "line" && styles.chartToggleTextActive,
+                        ]}
+                      >
+                        Line
+                      </Text>
+                    </TouchableOpacity>
                   </View>
                 </View>
+
+                {chartMode === "bar" ? (
+                  <View style={styles.barChartView}>
+                    <View style={styles.chartStatsRow}>
+                      <Text style={styles.chartSubLabel}>This Week's Earned Points</Text>
+                      <Text style={styles.chartValueLabel}>+145 pts</Text>
+                    </View>
+                    <View style={styles.barsContainer}>
+                      {[
+                        { day: "Mon", val: 15, h: 30, active: false },
+                        { day: "Tue", val: 25, h: 48, active: false },
+                        { day: "Wed", val: 10, h: 20, active: false },
+                        { day: "Thu", val: 35, h: 65, active: false },
+                        { day: "Fri", val: 20, h: 40, active: false },
+                        { day: "Sat", val: 40, h: 80, active: true },
+                        { day: "Sun", val: "--", h: 8, active: false },
+                      ].map((bar, i) => (
+                        <View key={i} style={styles.barCol}>
+                          <Text
+                            style={[
+                              styles.barValText,
+                              bar.active && { color: THEME.colors.primary, fontWeight: "700" },
+                            ]}
+                          >
+                            {bar.val}
+                          </Text>
+                          <View
+                            style={[
+                              styles.barFill,
+                              {
+                                height: `${bar.h}%`,
+                                backgroundColor: bar.active
+                                  ? THEME.colors.primary
+                                  : THEME.colors.primaryLight,
+                              },
+                            ]}
+                          />
+                          <Text
+                            style={[
+                              styles.barDayText,
+                              bar.active && { color: THEME.colors.textPrimary, fontWeight: "700" },
+                            ]}
+                          >
+                            {bar.day}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                ) : (
+                  <View style={styles.lineChartView}>
+                    <View style={styles.chartStatsRow}>
+                      <Text style={styles.chartSubLabel}>30-Day Cumulative Growth</Text>
+                      <Text style={[styles.chartValueLabel, { color: THEME.colors.secondary }]}>
+                        420 pts
+                      </Text>
+                    </View>
+                    <View style={styles.svgLineContainer}>
+                      <Svg width="100%" height="80" viewBox="0 0 300 80">
+                        <Defs>
+                          <SvgLinearGradient id="lineGrad" x1="0" y1="0" x2="0" y2="1">
+                            <Stop offset="0%" stopColor="#006a63" stopOpacity="0.3" />
+                            <Stop offset="100%" stopColor="#006a63" stopOpacity="0.0" />
+                          </SvgLinearGradient>
+                        </Defs>
+                        <Path
+                          d="M 0 65 Q 40 55, 80 50 T 160 38 T 230 22 T 300 8 L 300 80 L 0 80 Z"
+                          fill="url(#lineGrad)"
+                        />
+                        <Path
+                          d="M 0 65 Q 40 55, 80 50 T 160 38 T 230 22 T 300 8"
+                          fill="none"
+                          stroke="#006a63"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                        />
+                        <Circle cx="80" cy="50" r="3.5" fill="#006a63" />
+                        <Circle cx="160" cy="38" r="3.5" fill="#006a63" />
+                        <Circle cx="230" cy="22" r="3.5" fill="#006a63" />
+                        <Circle cx="300" cy="8" r="4" fill="#00873a" />
+                      </Svg>
+                      <View style={styles.lineXLabels}>
+                        <Text style={styles.xLabel}>Week 1</Text>
+                        <Text style={styles.xLabel}>Week 2</Text>
+                        <Text style={styles.xLabel}>Week 3</Text>
+                        <Text style={styles.xLabel}>Current</Text>
+                      </View>
+                    </View>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Redeem Eco Rewards Grid Header */}
+            <View style={styles.gridSectionHeader}>
+              <View style={styles.gridTitleRow}>
+                <Text style={styles.gridTitle}>Redeem Eco Rewards</Text>
+                <View style={styles.availableBadge}>
+                  <Text style={styles.availableBadgeText}>6 Available</Text>
+                </View>
+              </View>
+              <Text style={styles.gridSub}>
+                Exchange points for sustainable gear & transit discounts
+              </Text>
+            </View>
+
+            {/* 2-Column Marketplace Cards Grid */}
+            <View style={styles.itemsGrid}>
+              {MARKETPLACE_ITEMS.map((item) => (
+                <View key={item.id} style={styles.rewardCard}>
+                  {/* Product Image / Coupon Container */}
+                  <View style={styles.imageBox}>
+                    <View
+                      style={[styles.itemTag, { backgroundColor: item.tagColor }]}
+                    >
+                      <Text style={[styles.itemTagText, { color: item.tagTextColor }]}>
+                        {item.category}
+                      </Text>
+                    </View>
+
+                    {item.isCouponCard ? (
+                      <View style={styles.couponGraphic}>
+                        <View style={styles.couponIconCircle}>
+                          <Bus size={22} color="#ffffff" />
+                        </View>
+                        <Text style={styles.couponBigText}>₹100 OFF</Text>
+                        <Text style={styles.couponSubText}>Valid on all EV rides</Text>
+                      </View>
+                    ) : (
+                      <Image source={{ uri: item.imageUrl }} style={styles.productImg} />
+                    )}
+                  </View>
+
+                  {/* Title & Points Cost */}
+                  <View style={styles.cardInfo}>
+                    <Text style={styles.productName} numberOfLines={2}>
+                      {item.name}
+                    </Text>
+                    <View style={styles.pointsCostRow}>
+                      <Text
+                        style={[
+                          styles.productPoints,
+                          item.isLocked && { color: THEME.colors.textMuted },
+                        ]}
+                      >
+                        {item.points}
+                      </Text>
+                      <Text style={styles.productPointsSuffix}>pts</Text>
+                    </View>
+                  </View>
+
+                  {/* Action Button */}
+                  {item.isLocked ? (
+                    <View style={styles.lockedBtnContainer}>
+                      <TouchableOpacity style={styles.lockedBtn} disabled>
+                        <Lock size={13} color={THEME.colors.textMuted} />
+                        <Text style={styles.lockedBtnText}>
+                          Need {item.points - currentPoints} more pts
+                        </Text>
+                      </TouchableOpacity>
+                      <Text style={styles.lockedCurrentSub}>You have {currentPoints} pts</Text>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.redeemBtn}
+                      onPress={() => handleOpenRedeem(item)}
+                      activeOpacity={0.85}
+                    >
+                      <Text style={styles.redeemBtnText}>Redeem ({item.points} pts)</Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              ))}
+            </View>
+          </>
+        )}
+
+        {/* TAB 2: MY REDEMPTIONS (Shows redeemed vouchers & items taken with points) */}
+        {activeTab === "redemptions" && (
+          <View style={styles.redemptionsContainer}>
+            {/* Header Summary for Redemptions */}
+            <View style={styles.redemptionsSummaryCard}>
+              <View style={styles.redemptionsSummaryTop}>
+                <View>
+                  <Text style={styles.redemptionsSummaryLabel}>Total Points Redeemed</Text>
+                  <Text style={styles.redemptionsSummaryValue}>
+                    {redemptions.reduce((sum, r) => sum + r.points, 0)} pts
+                  </Text>
+                </View>
+                <View style={styles.claimedCountBadge}>
+                  <Award size={14} color={THEME.colors.primary} />
+                  <Text style={styles.claimedCountText}>
+                    {redemptions.length} Claimed
+                  </Text>
+                </View>
+              </View>
+              <Text style={styles.redemptionsSummarySub}>
+                Show voucher codes to bus marshals or scan QR at partner stations.
+              </Text>
+            </View>
+
+            <View style={styles.redemptionSectionHeader}>
+              <Text style={styles.redemptionSectionTitle}>Active Vouchers & Rewards</Text>
+              <Text style={styles.redemptionSectionSub}>
+                Items and transit discounts claimed with your EcoPoints
+              </Text>
+            </View>
+
+            {redemptions.length === 0 ? (
+              <View style={styles.emptyRedemptionsCard}>
+                <ShoppingBag size={36} color={THEME.colors.textMuted} />
+                <Text style={styles.emptyRedemptionsTitle}>No Redemptions Yet</Text>
+                <Text style={styles.emptyRedemptionsText}>
+                  Use your EcoPoints to claim ride discounts and sustainable gear!
+                </Text>
+                <TouchableOpacity
+                  style={styles.browseRewardsBtn}
+                  onPress={() => setActiveTab("rewards")}
+                >
+                  <Text style={styles.browseRewardsBtnText}>Browse Rewards</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={styles.redemptionList}>
+                {redemptions.map((item) => (
+                  <View key={item.id} style={styles.claimedCard}>
+                    <View style={styles.claimedCardTop}>
+                      <View style={styles.claimedIconBox}>
+                        {item.isCouponCard ? (
+                          <Bus size={22} color={THEME.colors.primary} />
+                        ) : (
+                          <ShoppingBag size={22} color={THEME.colors.primary} />
+                        )}
+                      </View>
+                      <View style={styles.claimedInfoCol}>
+                        <View style={styles.claimedTitleRow}>
+                          <Text style={styles.claimedName} numberOfLines={1}>
+                            {item.name}
+                          </Text>
+                          <View
+                            style={[
+                              styles.claimedStatusBadge,
+                              item.status === "Active"
+                                ? styles.statusActiveBadge
+                                : styles.statusDispatchedBadge,
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.claimedStatusText,
+                                item.status === "Active"
+                                  ? styles.statusActiveText
+                                  : styles.statusDispatchedText,
+                              ]}
+                            >
+                              {item.status}
+                            </Text>
+                          </View>
+                        </View>
+                        <View style={styles.claimedMetaRow}>
+                          <Clock size={12} color={THEME.colors.textMuted} />
+                          <Text style={styles.claimedDate}>{item.claimedAt}</Text>
+                          <Text style={styles.claimedDot}>•</Text>
+                          <Text style={styles.claimedPtsPaid}>-{item.points} pts</Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Voucher Code Box */}
+                    <View style={styles.voucherCodeCard}>
+                      <View style={styles.voucherCodeLeft}>
+                        <Text style={styles.voucherCodeLabel}>VOUCHER / CLAIM CODE</Text>
+                        <Text style={styles.voucherCodeText}>{item.code}</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.copyVoucherBtn}
+                        onPress={() =>
+                          Alert.alert("Copied!", `Voucher code ${item.code} copied to clipboard`)
+                        }
+                        activeOpacity={0.7}
+                      >
+                        <Copy size={13} color={THEME.colors.primary} />
+                        <Text style={styles.copyVoucherBtnText}>Copy</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
               </View>
             )}
           </View>
-        </View>
+        )}
 
-        {/* Redeem Eco Rewards Grid Header */}
-        <View style={styles.gridSectionHeader}>
-          <View style={styles.gridTitleRow}>
-            <Text style={styles.gridTitle}>Redeem Eco Rewards</Text>
-            <View style={styles.availableBadge}>
-              <Text style={styles.availableBadgeText}>6 Available</Text>
+        {/* TAB 3: EARN (How to gather more points) */}
+        {activeTab === "earn" && (
+          <View style={styles.earnContainer}>
+            <View style={styles.earnHeaderCard}>
+              <Sparkles size={24} color={THEME.colors.secondary} />
+              <Text style={styles.earnHeaderTitle}>How to Earn EcoPoints</Text>
+              <Text style={styles.earnHeaderSub}>
+                Every zero-emission ride saves carbon and automatically credits verified EcoPoints to your account.
+              </Text>
+            </View>
+
+            <View style={styles.earnCardsList}>
+              {[
+                {
+                  title: "Ride Electric City Buses",
+                  pts: "+5 pts / km",
+                  desc: "Automatic GPS & telemetry verification via Redis on all electric bus corridors.",
+                  icon: Bus,
+                },
+                {
+                  title: "Peak Green Commuter Streak",
+                  pts: "+50 bonus pts",
+                  desc: "Complete 5 consecutive zero-emission rides during weekday rush hours.",
+                  icon: Zap,
+                },
+                {
+                  title: "Zero-Carbon Champion",
+                  pts: "+100 bonus pts",
+                  desc: "Achieve 50 km total electric distance travelled in a single calendar month.",
+                  icon: ShieldCheck,
+                },
+              ].map((rule, idx) => (
+                <View key={idx} style={styles.earnRuleCard}>
+                  <View style={styles.earnRuleIconBox}>
+                    <rule.icon size={20} color={THEME.colors.primary} />
+                  </View>
+                  <View style={styles.earnRuleInfo}>
+                    <View style={styles.earnRuleTop}>
+                      <Text style={styles.earnRuleTitle}>{rule.title}</Text>
+                      <Text style={styles.earnRulePts}>{rule.pts}</Text>
+                    </View>
+                    <Text style={styles.earnRuleDesc}>{rule.desc}</Text>
+                  </View>
+                </View>
+              ))}
             </View>
           </View>
-          <Text style={styles.gridSub}>
-            Exchange points for sustainable gear & transit discounts
-          </Text>
-        </View>
-
-        {/* 2-Column Marketplace Cards Grid */}
-        <View style={styles.itemsGrid}>
-          {MARKETPLACE_ITEMS.map((item) => (
-            <View key={item.id} style={styles.rewardCard}>
-              {/* Product Image / Coupon Container */}
-              <View style={styles.imageBox}>
-                <View
-                  style={[styles.itemTag, { backgroundColor: item.tagColor }]}
-                >
-                  <Text style={[styles.itemTagText, { color: item.tagTextColor }]}>
-                    {item.category}
-                  </Text>
-                </View>
-
-                {item.isCouponCard ? (
-                  <View style={styles.couponGraphic}>
-                    <View style={styles.couponIconCircle}>
-                      <Bus size={22} color="#ffffff" />
-                    </View>
-                    <Text style={styles.couponBigText}>₹100 OFF</Text>
-                    <Text style={styles.couponSubText}>Valid on all EV rides</Text>
-                  </View>
-                ) : (
-                  <Image source={{ uri: item.imageUrl }} style={styles.productImg} />
-                )}
-              </View>
-
-              {/* Title & Points Cost */}
-              <View style={styles.cardInfo}>
-                <Text style={styles.productName} numberOfLines={2}>
-                  {item.name}
-                </Text>
-                <View style={styles.pointsCostRow}>
-                  <Text
-                    style={[
-                      styles.productPoints,
-                      item.isLocked && { color: THEME.colors.textMuted },
-                    ]}
-                  >
-                    {item.points}
-                  </Text>
-                  <Text style={styles.productPointsSuffix}>pts</Text>
-                </View>
-              </View>
-
-              {/* Action Button */}
-              {item.isLocked ? (
-                <View style={styles.lockedBtnContainer}>
-                  <TouchableOpacity style={styles.lockedBtn} disabled>
-                    <Lock size={13} color={THEME.colors.textMuted} />
-                    <Text style={styles.lockedBtnText}>
-                      Need {item.points - currentPoints} more pts
-                    </Text>
-                  </TouchableOpacity>
-                  <Text style={styles.lockedCurrentSub}>You have {currentPoints} pts</Text>
-                </View>
-              ) : (
-                <TouchableOpacity
-                  style={styles.redeemBtn}
-                  onPress={() => handleOpenRedeem(item)}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.redeemBtnText}>Redeem ({item.points} pts)</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          ))}
-        </View>
+        )}
       </ScrollView>
 
       {/* Confirmation Dialog Modal */}
@@ -1071,5 +1287,290 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: "#ffffff",
+  },
+  // Redemptions View Styles
+  redemptionsContainer: {
+    gap: 14,
+  },
+  redemptionsSummaryCard: {
+    backgroundColor: THEME.colors.surface,
+    borderRadius: THEME.roundness.xl,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    gap: 10,
+    ...THEME.shadows.card,
+  },
+  redemptionsSummaryTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  redemptionsSummaryLabel: {
+    fontSize: 11,
+    color: THEME.colors.textSecondary,
+    fontWeight: "600",
+  },
+  redemptionsSummaryValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: THEME.colors.primary,
+    marginTop: 2,
+  },
+  claimedCountBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "rgba(0, 107, 44, 0.1)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: THEME.roundness.full,
+  },
+  claimedCountText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: THEME.colors.primary,
+  },
+  redemptionsSummarySub: {
+    fontSize: 11,
+    color: THEME.colors.textSecondary,
+    lineHeight: 16,
+  },
+  redemptionSectionHeader: {
+    gap: 2,
+    marginTop: 4,
+  },
+  redemptionSectionTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  redemptionSectionSub: {
+    fontSize: 11,
+    color: THEME.colors.textSecondary,
+  },
+  redemptionList: {
+    gap: 12,
+  },
+  claimedCard: {
+    backgroundColor: THEME.colors.surface,
+    borderRadius: THEME.roundness.xl,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    gap: 12,
+    ...THEME.shadows.card,
+  },
+  claimedCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  claimedIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "rgba(0, 107, 44, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  claimedInfoCol: {
+    flex: 1,
+    gap: 4,
+  },
+  claimedTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  claimedName: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+    flex: 1,
+    marginRight: 6,
+  },
+  claimedStatusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: THEME.roundness.full,
+  },
+  statusActiveBadge: {
+    backgroundColor: "rgba(0, 107, 44, 0.12)",
+  },
+  statusDispatchedBadge: {
+    backgroundColor: "rgba(59, 130, 246, 0.12)",
+  },
+  claimedStatusText: {
+    fontSize: 10,
+    fontWeight: "700",
+  },
+  statusActiveText: {
+    color: THEME.colors.primary,
+  },
+  statusDispatchedText: {
+    color: "#2563eb",
+  },
+  claimedMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  claimedDate: {
+    fontSize: 11,
+    color: THEME.colors.textMuted,
+  },
+  claimedDot: {
+    fontSize: 11,
+    color: THEME.colors.textMuted,
+  },
+  claimedPtsPaid: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#dc2626",
+  },
+  voucherCodeCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: THEME.colors.surfaceSecondary,
+    borderRadius: THEME.roundness.md,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+  },
+  voucherCodeLeft: {
+    gap: 2,
+  },
+  voucherCodeLabel: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: THEME.colors.textMuted,
+    letterSpacing: 0.5,
+  },
+  voucherCodeText: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: THEME.colors.textPrimary,
+    fontFamily: "monospace",
+    letterSpacing: 1,
+  },
+  copyVoucherBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: THEME.colors.surface,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: THEME.roundness.sm,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+  },
+  copyVoucherBtnText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: THEME.colors.primary,
+  },
+  emptyRedemptionsCard: {
+    backgroundColor: THEME.colors.surface,
+    borderRadius: THEME.roundness.xl,
+    padding: 32,
+    alignItems: "center",
+    gap: 10,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+  },
+  emptyRedemptionsTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  emptyRedemptionsText: {
+    fontSize: 12,
+    color: THEME.colors.textSecondary,
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  browseRewardsBtn: {
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: THEME.roundness.full,
+    marginTop: 6,
+  },
+  browseRewardsBtnText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#ffffff",
+  },
+  // Earn View Styles
+  earnContainer: {
+    gap: 14,
+  },
+  earnHeaderCard: {
+    backgroundColor: THEME.colors.primary,
+    borderRadius: THEME.roundness.xl,
+    padding: 18,
+    alignItems: "center",
+    textAlign: "center",
+    gap: 8,
+  },
+  earnHeaderTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#ffffff",
+  },
+  earnHeaderSub: {
+    fontSize: 12,
+    color: "rgba(255, 255, 255, 0.85)",
+    textAlign: "center",
+    lineHeight: 18,
+  },
+  earnCardsList: {
+    gap: 10,
+  },
+  earnRuleCard: {
+    flexDirection: "row",
+    backgroundColor: THEME.colors.surface,
+    borderRadius: THEME.roundness.xl,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    alignItems: "center",
+    gap: 12,
+    ...THEME.shadows.card,
+  },
+  earnRuleIconBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "rgba(0, 107, 44, 0.1)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  earnRuleInfo: {
+    flex: 1,
+    gap: 3,
+  },
+  earnRuleTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  earnRuleTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  earnRulePts: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: THEME.colors.primary,
+  },
+  earnRuleDesc: {
+    fontSize: 11,
+    color: THEME.colors.textSecondary,
+    lineHeight: 16,
   },
 });
