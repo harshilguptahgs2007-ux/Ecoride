@@ -15,6 +15,7 @@ import { MapCanvas } from "../components/MapCanvas";
 import { ImpactCard } from "../components/ImpactCard";
 import { THEME } from "../theme/theme";
 import { api } from "../api/client";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../context/AuthContext";
 import { Zap, Navigation, X, Bus, Star, User, ShieldCheck, CheckCircle2 } from "lucide-react-native";
 
@@ -73,10 +74,32 @@ export const HomeScreen = ({ navigation }) => {
         driverInfo.rideId = newRide.id;
         driverInfo.distanceKm = newRide.distance_km || 18.2;
       }
-      loadRides();
-      refreshUser();
-    } catch (e) {
-      console.log("Live backend booking notice (using demo driver dispatch):", e.message);
+      // Persist to local ride history immediately
+      try {
+        const storedCustom = await AsyncStorage.getItem("ecoride_booked_history");
+        const existingList = storedCustom ? JSON.parse(storedCustom) : [];
+        const historyEntry = {
+          id: driverInfo.rideId,
+          route: driverInfo.busRideName,
+          type: "electric",
+          dateStr: "Just now",
+          pickup_address: pickupAddress,
+          pickup_sub: "Electronic City Transit Stop",
+          drop_address: dropAddress,
+          drop_sub: "Assigned Bus: " + driverInfo.busNumber,
+          fare: Math.round(driverInfo.distanceKm * 2.5),
+          fareSub: "Pilot: " + driverInfo.driverName + " (★ " + driverInfo.rating + ")",
+          distance_km: driverInfo.distanceKm,
+          eco_points_earned: Math.round(driverInfo.distanceKm * 5),
+          status: "completed",
+        };
+        await AsyncStorage.setItem(
+          "ecoride_booked_history",
+          JSON.stringify([historyEntry, ...existingList])
+        );
+      } catch (storageErr) {
+        console.log("AsyncStorage ride save error:", storageErr.message);
+      }
     } finally {
       setBookedDriver(driverInfo);
       setBookingLoading(false);
@@ -263,12 +286,23 @@ export const HomeScreen = ({ navigation }) => {
                   </View>
                 </View>
 
-                <TouchableOpacity
-                  style={styles.doneBtn}
-                  onPress={() => setBookingModalVisible(false)}
-                >
-                  <Text style={styles.doneBtnText}>View On Live Map</Text>
-                </TouchableOpacity>
+                <View style={styles.modalActionButtonsRow}>
+                  <TouchableOpacity
+                    style={styles.doneBtn}
+                    onPress={() => setBookingModalVisible(false)}
+                  >
+                    <Text style={styles.doneBtnText}>View On Live Map</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.historyBtn}
+                    onPress={() => {
+                      setBookingModalVisible(false);
+                      navigation.navigate("History");
+                    }}
+                  >
+                    <Text style={styles.historyBtnText}>View In Activity History</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             ) : (
               /* Booking Input Form View */
@@ -696,16 +730,35 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     flex: 1,
   },
+  modalActionButtonsRow: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 4,
+  },
   doneBtn: {
+    flex: 1,
     backgroundColor: THEME.colors.primary,
     paddingVertical: 14,
     borderRadius: THEME.roundness.lg,
     alignItems: "center",
-    marginTop: 4,
   },
   doneBtnText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#fff",
+  },
+  historyBtn: {
+    flex: 1,
+    backgroundColor: THEME.colors.surfaceSecondary,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    paddingVertical: 14,
+    borderRadius: THEME.roundness.lg,
+    alignItems: "center",
+  },
+  historyBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
   },
 });

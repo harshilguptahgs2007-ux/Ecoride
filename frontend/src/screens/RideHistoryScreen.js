@@ -8,6 +8,7 @@ import {
   RefreshControl,
   Alert,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { THEME } from "../theme/theme";
 import { api } from "../api/client";
 import { useAuth } from "../context/AuthContext";
@@ -38,14 +39,17 @@ export const RideHistoryScreen = () => {
   const loadHistory = async () => {
     setRefreshing(true);
     try {
+      const storedCustom = await AsyncStorage.getItem("ecoride_booked_history");
+      const customRides = storedCustom ? JSON.parse(storedCustom) : [];
+
       const data = await api.getMyRides(50);
       if (data && data.rides && data.rides.length > 0) {
-        setRides(data.rides);
+        setRides([...customRides, ...data.rides]);
         setTotalDistance(data.total_distance_km || 63.5);
         setEcoPointsTotal(data.eco_points_total || 168);
       } else {
         // Fallback default rides matching Stitch screen e35fa7f967b64fa6a1d5a364c29f3aa8
-        setRides([
+        const defaults = [
           {
             id: 1,
             route: "Route 347 (Electric AC)",
@@ -106,7 +110,8 @@ export const RideHistoryScreen = () => {
             eco_points_earned: 11,
             status: "completed",
           },
-        ]);
+        ];
+        setRides([...customRides, ...defaults]);
       }
     } catch (e) {
       console.log("Fetch history error:", e.message);
