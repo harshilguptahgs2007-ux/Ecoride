@@ -22,6 +22,9 @@ import {
   CheckCircle2,
   Clock,
   Fuel,
+  User,
+  Bus,
+  Star,
 } from "lucide-react-native";
 
 export const RideHistoryScreen = () => {
@@ -201,12 +204,35 @@ export const RideHistoryScreen = () => {
           <ChevronRight size={18} color={THEME.colors.textMuted} />
         </View>
 
+        {/* Bus Rider / Pilot & Vehicle Info Row */}
+        <View style={styles.riderVehicleBar}>
+          <View style={styles.riderLeftCol}>
+            <View style={styles.riderAvatarMini}>
+              <User size={13} color={THEME.colors.primary} />
+            </View>
+            <Text style={styles.riderNameText}>
+              {item.driverName || (item.fareSub?.includes("Pilot:") ? item.fareSub.split("(")[0].replace("Pilot:", "").trim() : "Rajesh Kumar (Pilot)")}
+            </Text>
+            <View style={styles.riderRatingTag}>
+              <Star size={10} color="#f59e0b" fill="#f59e0b" />
+              <Text style={styles.riderRatingText}>{item.rating || "4.9"}</Text>
+            </View>
+          </View>
+
+          <View style={styles.vehiclePlateTag}>
+            <Bus size={11} color={THEME.colors.textPrimary} />
+            <Text style={styles.vehiclePlateText}>
+              {item.busNumber || (item.drop_sub?.includes("Bus:") ? item.drop_sub.replace("Assigned Bus:", "").trim() : "DL 1PD 4820")}
+            </Text>
+          </View>
+        </View>
+
         {/* Card Footer Bar: Fare, Distance, Eco Badge */}
         <View style={styles.cardFooterBar}>
           <View style={styles.fareCol}>
             <Text style={styles.fareAmount}>₹{item.fare || Math.round(item.distance_km * 3)}</Text>
             <Text style={styles.fareSubText}>
-              {item.fareSub || "Redeemed 10 EcoPoints"}
+              {item.fareSub || "Zero-Emission Transit"}
             </Text>
           </View>
 
@@ -639,5 +665,66 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "700",
     color: THEME.colors.primaryDark,
+  },
+  // Rider & Vehicle Bar Styles
+  riderVehicleBar: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: THEME.colors.surfaceSecondary,
+    borderRadius: THEME.roundness.md,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+    marginTop: -2,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+  },
+  riderLeftCol: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    flex: 1,
+  },
+  riderAvatarMini: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: "rgba(0, 107, 44, 0.12)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  riderNameText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  riderRatingTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 2,
+    backgroundColor: "rgba(245, 158, 11, 0.15)",
+    paddingHorizontal: 5,
+    paddingVertical: 1.5,
+    borderRadius: THEME.roundness.full,
+  },
+  riderRatingText: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: "#b45309",
+  },
+  vehiclePlateTag: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#fef08a",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  vehiclePlateText: {
+    fontSize: 10,
+    fontWeight: "800",
+    color: THEME.colors.textPrimary,
+    fontFamily: "monospace",
   },
 });
