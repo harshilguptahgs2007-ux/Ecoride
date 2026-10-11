@@ -15,6 +15,7 @@ import { MapCanvas } from "../components/MapCanvas";
 import { ImpactCard } from "../components/ImpactCard";
 import { THEME } from "../theme/theme";
 import { api } from "../api/client";
+import { useAuth } from "../context/AuthContext";
 import { Zap, Navigation, X, Bus, Star, User, ShieldCheck, CheckCircle2 } from "lucide-react-native";
 
 export const HomeScreen = ({ navigation }) => {
