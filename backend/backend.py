@@ -53,13 +53,28 @@ def init_redis():
 
 redis_client = init_redis()
 
-engine = create_engine("sqlite:///database.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///database.db")
 
-@event.listens_for(engine, "connect")
-def fkey_activate(con, _):
-    cursor = con.cursor()
-    cursor.execute("PRAGMA foreign_keys=ON")
-    cursor.close()
+connect_args = {}
+engine_kwargs = {}
+
+if DATABASE_URL.startswith("sqlite"):
+    connect_args = {"check_same_thread": False}
+else:
+    engine_kwargs = {
+        "pool_pre_ping": True,
+        "pool_size": int(os.getenv("DB_POOL_SIZE", "10")),
+        "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", "20")),
+    }
+
+engine = create_engine(DATABASE_URL, connect_args=connect_args, **engine_kwargs)
+
+if DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine, "connect")
+    def fkey_activate(con, _):
+        cursor = con.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
 def utcnow() -> datetime:
     return datetime.now(timezone.utc)
@@ -105,13 +120,38 @@ app = FastAPI(
     description="FastAPI backend powered by Redis for fast in-memory visibility & SQLite persistent storage"
 )
 
+CORS_ORIGINS = os.getenv("CORS_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=CORS_ORIGINS,
+    allow_credentials=True if CORS_ORIGINS != ["*"] else False,
     allow_headers=["*"],
     allow_methods=["*"],
 )
+
+@app.get("/health")
+def health_check():
+    db_status = "connected"
+    try:
+        with SessionLocal() as db:
+            db.execute(select(1))
+    except Exception as e:
+        db_status = f"unhealthy: {str(e)}"
+
+    redis_status = "connected"
+    try:
+        redis_client.ping()
+    except Exception as e:
+        redis_status = f"unhealthy: {str(e)}"
+
+    return {
+        "status": "healthy" if db_status == "connected" and redis_status == "connected" else "degraded",
+        "database": db_status,
+        "database_engine": engine.dialect.name,
+        "redis": redis_status,
+        "timestamp": utcnow().isoformat()
+    }
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
