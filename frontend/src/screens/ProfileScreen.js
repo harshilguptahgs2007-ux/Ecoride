@@ -25,31 +25,11 @@ import {
   Bell,
   Headphones,
   LogOut,
-  RefreshCw,
 } from "lucide-react-native";
 
 export const ProfileScreen = () => {
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const [autoRedeem, setAutoRedeem] = useState(true);
-  const [syncingLoc, setSyncingLoc] = useState(false);
-
-  const handleUpdateLocation = async () => {
-    setSyncingLoc(true);
-    try {
-      const lat = 28.6139;
-      const lng = 77.209;
-      await api.updateLocation(lat, lng);
-      await refreshUser();
-      Alert.alert(
-        "📍 GPS Synced with Redis",
-        `Coordinates (${lat}, ${lng}) indexed into 'users:geo' for fast proximity matching!`
-      );
-    } catch (e) {
-      Alert.alert("Location Sync", e.message || "Failed to sync GPS.");
-    } finally {
-      setSyncingLoc(false);
-    }
-  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -183,28 +163,6 @@ export const ProfileScreen = () => {
           />
         </View>
 
-        {/* GPS Sync Button with Redis */}
-        <TouchableOpacity
-          style={styles.gpsSyncBanner}
-          onPress={handleUpdateLocation}
-          disabled={syncingLoc}
-          activeOpacity={0.8}
-        >
-          <View style={styles.gpsSyncLeft}>
-            <View style={[styles.bentoIconCircle, { backgroundColor: THEME.colors.secondaryContainer }]}>
-              <RefreshCw size={18} color={THEME.colors.secondary} />
-            </View>
-            <View>
-              <Text style={styles.gpsSyncTitle}>
-                {syncingLoc ? "Syncing with Redis..." : "Sync GPS Location"}
-              </Text>
-              <Text style={styles.gpsSyncSub}>
-                Coordinates: {user?.latitude ? `${user.latitude.toFixed(2)}, ${user.longitude.toFixed(2)}` : "28.61, 77.21"} (users:geo)
-              </Text>
-            </View>
-          </View>
-          <ChevronRight size={18} color={THEME.colors.textMuted} />
-        </TouchableOpacity>
 
         {/* Section 1: Commute Preferences & Essentials */}
         <View style={styles.menuSection}>
@@ -542,33 +500,6 @@ const styles = StyleSheet.create({
     color: THEME.colors.textPrimary,
   },
   autoRedeemSub: {
-    fontSize: 11,
-    color: THEME.colors.textSecondary,
-    marginTop: 1,
-  },
-  gpsSyncBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: THEME.colors.surface,
-    borderRadius: THEME.roundness.lg,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: THEME.colors.surfaceBorder,
-    ...THEME.shadows.card,
-  },
-  gpsSyncLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10,
-    flex: 1,
-  },
-  gpsSyncTitle: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: THEME.colors.textPrimary,
-  },
-  gpsSyncSub: {
     fontSize: 11,
     color: THEME.colors.textSecondary,
     marginTop: 1,
