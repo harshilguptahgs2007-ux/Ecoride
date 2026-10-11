@@ -979,12 +979,15 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.45)",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "flex-end",
+    alignItems: "center",
     padding: 12,
     paddingBottom: 24,
   },
   modalCard: {
+    width: "100%",
+    maxWidth: 420,
     backgroundColor: THEME.colors.surface,
     borderRadius: THEME.roundness.xl,
     padding: 16,

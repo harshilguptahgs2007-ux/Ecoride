@@ -216,8 +216,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.6)",
     justifyContent: "flex-end",
+    alignItems: "center",
   },
   modalCard: {
+    width: "100%",
+    maxWidth: 440,
     backgroundColor: THEME.colors.surface,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
