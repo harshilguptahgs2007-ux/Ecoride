@@ -8,6 +8,7 @@ import {
   Image,
   Alert,
   Switch,
+  Linking,
 } from "react-native";
 import { THEME } from "../theme/theme";
 import { useAuth } from "../context/AuthContext";
@@ -31,12 +32,16 @@ import {
   Award,
   ShieldCheck,
   ArrowRight,
+  Mail,
+  MessageSquare,
+  Copy,
 } from "lucide-react-native";
 
 export const ProfileScreen = () => {
   const { user } = useAuth();
   const [autoRedeem, setAutoRedeem] = useState(true);
   const [showPerks, setShowPerks] = useState(false);
+  const [showSupport, setShowSupport] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -313,16 +318,89 @@ export const ProfileScreen = () => {
             <View style={styles.divider} />
 
             {/* Help & Support */}
-            <TouchableOpacity style={styles.menuItem} activeOpacity={0.7}>
+            <TouchableOpacity
+              style={styles.menuItem}
+              onPress={() => setShowSupport((prev) => !prev)}
+              activeOpacity={0.7}
+            >
               <View style={[styles.menuIconBox, { backgroundColor: THEME.colors.surfaceSecondary }]}>
                 <Headphones size={19} color={THEME.colors.secondary} />
               </View>
               <View style={styles.menuItemBody}>
                 <Text style={styles.menuItemTitle}>Help & Support</Text>
-                <Text style={styles.menuItemSub}>24x7 Transit Helpline & FAQs</Text>
+                <Text style={styles.menuItemSub}>24x7 Transit Helpline, Email & SMS</Text>
               </View>
-              <ChevronRight size={18} color={THEME.colors.textMuted} />
+              {showSupport ? (
+                <ChevronDown size={18} color={THEME.colors.secondary} />
+              ) : (
+                <ChevronRight size={18} color={THEME.colors.textMuted} />
+              )}
             </TouchableOpacity>
+
+            {/* Expandable Support Channels Box */}
+            {showSupport && (
+              <View style={styles.supportChannelsContainer}>
+                {/* Channel 1: 24x7 Transit Helpline Phone */}
+                <View style={styles.supportChannelCard}>
+                  <View style={styles.supportChannelIconCircle}>
+                    <Phone size={18} color={THEME.colors.primary} />
+                  </View>
+                  <View style={styles.supportChannelInfo}>
+                    <Text style={styles.supportChannelLabel}>24x7 TRANSIT HELPLINE</Text>
+                    <Text style={styles.supportChannelValue}>1800-200-ZAPB (1800 200 9272)</Text>
+                    <Text style={styles.supportChannelSub}>Toll-free emergency & bus dispatch support</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.supportActionBtn}
+                    onPress={() => Linking.openURL("tel:18002009272")}
+                    activeOpacity={0.8}
+                  >
+                    <Phone size={13} color="#ffffff" />
+                    <Text style={styles.supportActionBtnText}>Call</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Channel 2: Official Support Email */}
+                <View style={styles.supportChannelCard}>
+                  <View style={styles.supportChannelIconCircle}>
+                    <Mail size={18} color={THEME.colors.secondary} />
+                  </View>
+                  <View style={styles.supportChannelInfo}>
+                    <Text style={styles.supportChannelLabel}>EMAIL SUPPORT</Text>
+                    <Text style={styles.supportChannelValue}>support@zapbus.in</Text>
+                    <Text style={styles.supportChannelSub}>Response within 2 hours for grievances</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.supportActionBtn, { backgroundColor: THEME.colors.secondary }]}
+                    onPress={() => Linking.openURL("mailto:support@zapbus.in?subject=ZapBus Support Query")}
+                    activeOpacity={0.8}
+                  >
+                    <Mail size={13} color="#ffffff" />
+                    <Text style={styles.supportActionBtnText}>Email</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Channel 3: SMS Helpline / Shortcode */}
+                <View style={styles.supportChannelCard}>
+                  <View style={styles.supportChannelIconCircle}>
+                    <MessageSquare size={18} color={THEME.colors.tertiaryDark} />
+                  </View>
+                  <View style={styles.supportChannelInfo}>
+                    <Text style={styles.supportChannelLabel}>SMS HELPLINE & SOS</Text>
+                    <Text style={styles.supportChannelValue}>+91 98710 92728 (or SMS HELP)</Text>
+                    <Text style={styles.supportChannelSub}>Instant SMS updates on delay & lost items</Text>
+                  </View>
+                  <TouchableOpacity
+                    style={[styles.supportActionBtn, { backgroundColor: THEME.colors.tertiaryDark }]}
+                    onPress={() => Linking.openURL("sms:+919871092728?body=HELP ZapBus")}
+                    activeOpacity={0.8}
+                  >
+                    <MessageSquare size={13} color="#ffffff" />
+                    <Text style={styles.supportActionBtnText}>SMS</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -871,5 +949,65 @@ const styles = StyleSheet.create({
     height: 3,
     borderRadius: 1.5,
     backgroundColor: THEME.colors.surfaceBorder,
+  },
+  // Support Channels Container Styles
+  supportChannelsContainer: {
+    backgroundColor: THEME.colors.surfaceSecondary,
+    padding: 12,
+    gap: 10,
+    borderTopWidth: 1,
+    borderTopColor: THEME.colors.surfaceBorder,
+  },
+  supportChannelCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: THEME.colors.surface,
+    padding: 12,
+    borderRadius: THEME.roundness.md,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: THEME.colors.surfaceBorder,
+    ...THEME.shadows.card,
+  },
+  supportChannelIconCircle: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "rgba(0, 107, 44, 0.08)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  supportChannelInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  supportChannelLabel: {
+    fontSize: 9,
+    fontWeight: "700",
+    color: THEME.colors.textMuted,
+    letterSpacing: 0.5,
+  },
+  supportChannelValue: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: THEME.colors.textPrimary,
+  },
+  supportChannelSub: {
+    fontSize: 10,
+    color: THEME.colors.textSecondary,
+  },
+  supportActionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: THEME.colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: THEME.roundness.sm,
+  },
+  supportActionBtnText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#ffffff",
   },
 });
