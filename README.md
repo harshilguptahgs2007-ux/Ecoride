@@ -7,7 +7,7 @@ A full-stack sustainable transit and EV bus booking application featuring real-t
 ## Project Structure
 
 ```
-Zap_bus/
+EcoRide/
 ├── backend/                  # FastAPI + Redis + SQLite Backend
 │   ├── backend.py            # Primary REST API & Redis Pub/Sub engine
 │   ├── test_backend.py       # Automated integration test suite
