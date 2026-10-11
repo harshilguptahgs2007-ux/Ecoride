@@ -27,9 +27,102 @@ import {
   Star,
 } from "lucide-react-native";
 
+const DEFAULT_RIDES = [
+  {
+    id: "booked_ride_101",
+    route: "Route 347 (Electric AC Express)",
+    type: "electric",
+    dateStr: "Today, 4:15 PM",
+    pickup_address: "Sector 62, Noida",
+    pickup_sub: "Electronic City Metro Interchange",
+    drop_address: "Ratan Pearls, Greater Noida West",
+    drop_sub: "Assigned Bus: DL 1PD 4820",
+    fare: 35,
+    fareSub: "Pilot: Rajesh Kumar (★ 4.9)",
+    driverName: "Rajesh Kumar (Pilot)",
+    busNumber: "DL 1PD 4820",
+    rating: "4.9",
+    distance_km: 14.2,
+    eco_points_earned: 71,
+    status: "completed",
+  },
+  {
+    id: 1,
+    route: "Route 347 (Electric AC)",
+    type: "electric",
+    dateStr: "Today, 8:45 AM",
+    pickup_address: "Sector 62, Noida",
+    pickup_sub: "Electronic City Metro Interchange",
+    drop_address: "Connaught Place, Central Delhi",
+    drop_sub: "Shivaji Stadium Terminal Outer Circle",
+    fare: 45,
+    fareSub: "Pilot: Amit Verma (★ 4.8)",
+    driverName: "Amit Verma (Pilot)",
+    busNumber: "DL 1PD 3310",
+    rating: "4.8",
+    distance_km: 18.2,
+    eco_points_earned: 18,
+    status: "completed",
+  },
+  {
+    id: 2,
+    route: "Route 729 (CNG Express)",
+    type: "cng",
+    dateStr: "Yesterday, 6:15 PM",
+    pickup_address: "Cyber City Gate 2",
+    pickup_sub: "DLF Cyberhub Pickup Bay",
+    drop_address: "Sector 62, Noida",
+    drop_sub: "Fortis Hospital Crossing",
+    fare: 55,
+    fareSub: "Pilot: Suresh Singh (★ 4.7)",
+    driverName: "Suresh Singh (Pilot)",
+    busNumber: "HR 26 BR 9102",
+    rating: "4.7",
+    distance_km: 24.5,
+    eco_points_earned: 14,
+    status: "completed",
+  },
+  {
+    id: 3,
+    route: "Route 102 (Electric Feeder)",
+    type: "electric",
+    dateStr: "24 Oct, 9:10 AM",
+    pickup_address: "Botanical Garden Metro",
+    pickup_sub: "Gate No 3 Bus Bay",
+    drop_address: "Advant Navis Business Park",
+    drop_sub: "Sector 142 Expressway Exit",
+    fare: 25,
+    fareSub: "Pilot: Vikram Rao (★ 4.9)",
+    driverName: "Vikram Rao (Pilot)",
+    busNumber: "UP 16 ER 5521",
+    rating: "4.9",
+    distance_km: 9.8,
+    eco_points_earned: 10,
+    status: "completed",
+  },
+  {
+    id: 4,
+    route: "Route 500-E (Zero Emission)",
+    type: "electric",
+    dateStr: "22 Oct, 7:30 PM",
+    pickup_address: "Noida City Centre",
+    pickup_sub: "Concourse Platform Link 1",
+    drop_address: "Sector 137",
+    drop_sub: "Paras Tierea Transit Stand",
+    fare: 30,
+    fareSub: "Pilot: Harish Chand (★ 4.8)",
+    driverName: "Harish Chand (Pilot)",
+    busNumber: "DL 1PD 1290",
+    rating: "4.8",
+    distance_km: 11.0,
+    eco_points_earned: 11,
+    status: "completed",
+  },
+];
+
 export const RideHistoryScreen = () => {
   const { refreshUser } = useAuth();
-  const [rides, setRides] = useState([]);
+  const [rides, setRides] = useState(DEFAULT_RIDES);
   const [totalDistance, setTotalDistance] = useState(63.5);
   const [ecoPointsTotal, setEcoPointsTotal] = useState(168);
   const [refreshing, setRefreshing] = useState(false);
@@ -45,79 +138,21 @@ export const RideHistoryScreen = () => {
       const storedCustom = await AsyncStorage.getItem("ecoride_booked_history");
       const customRides = storedCustom ? JSON.parse(storedCustom) : [];
 
-      const data = await api.getMyRides(50);
-      if (data && data.rides && data.rides.length > 0) {
-        setRides([...customRides, ...data.rides]);
-        setTotalDistance(data.total_distance_km || 63.5);
-        setEcoPointsTotal(data.eco_points_total || 168);
-      } else {
-        // Fallback default rides matching Stitch screen e35fa7f967b64fa6a1d5a364c29f3aa8
-        const defaults = [
-          {
-            id: 1,
-            route: "Route 347 (Electric AC)",
-            type: "electric",
-            dateStr: "Today, 8:45 AM",
-            pickup_address: "Sector 62, Noida",
-            pickup_sub: "Electronic City Metro Interchange",
-            drop_address: "Connaught Place, Central Delhi",
-            drop_sub: "Shivaji Stadium Terminal Outer Circle",
-            fare: 45,
-            fareSub: "Redeemed 10 EcoPoints",
-            distance_km: 18.2,
-            eco_points_earned: 18,
-            status: "completed",
-          },
-          {
-            id: 2,
-            route: "Route 729 (CNG Express)",
-            type: "cng",
-            dateStr: "Yesterday, 6:15 PM",
-            pickup_address: "Cyber City Gate 2",
-            pickup_sub: "DLF Cyberhub Pickup Bay",
-            drop_address: "Sector 62, Noida",
-            drop_sub: "Fortis Hospital Crossing",
-            fare: 55,
-            fareSub: "Standard Fare",
-            distance_km: 24.5,
-            eco_points_earned: 14,
-            status: "completed",
-          },
-          {
-            id: 3,
-            route: "Route 102 (Electric Feeder)",
-            type: "electric",
-            dateStr: "24 Oct, 9:10 AM",
-            pickup_address: "Botanical Garden Metro",
-            pickup_sub: "Gate No 3 Bus Bay",
-            drop_address: "Advant Navis Business Park",
-            drop_sub: "Sector 142 Expressway Exit",
-            fare: 25,
-            fareSub: "Direct Fare",
-            distance_km: 9.8,
-            eco_points_earned: 10,
-            status: "completed",
-          },
-          {
-            id: 4,
-            route: "Route 500-E (Zero Emission)",
-            type: "electric",
-            dateStr: "22 Oct, 7:30 PM",
-            pickup_address: "Noida City Centre",
-            pickup_sub: "Concourse Platform Link 1",
-            drop_address: "Sector 137",
-            drop_sub: "Paras Tierea Transit Stand",
-            fare: 30,
-            fareSub: "Express E-Bus",
-            distance_km: 11.0,
-            eco_points_earned: 11,
-            status: "completed",
-          },
-        ];
-        setRides([...customRides, ...defaults]);
+      try {
+        const data = await api.getMyRides(50);
+        if (data && data.rides && data.rides.length > 0) {
+          setRides([...customRides, ...data.rides]);
+          setTotalDistance(data.total_distance_km || 63.5);
+          setEcoPointsTotal(data.eco_points_total || 168);
+        } else {
+          setRides([...customRides, ...DEFAULT_RIDES]);
+        }
+      } catch (apiErr) {
+        setRides([...customRides, ...DEFAULT_RIDES]);
       }
     } catch (e) {
       console.log("Fetch history error:", e.message);
+      setRides(DEFAULT_RIDES);
     } finally {
       setRefreshing(false);
     }
